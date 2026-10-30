@@ -1,0 +1,47 @@
+{
+  "Positions": [
+    "app-header",
+    "positions-cell-isin",
+    "positions-cell-issuer",
+    "positions-cell-marketValue",
+    "positions-cell-quantity",
+    "positions-cell-status",
+    "positions-cell-tradeDate",
+    "positions-empty",
+    "positions-export-button",
+    "positions-from",
+    "positions-page-next",
+    "positions-page-prev",
+    "positions-page-size",
+    "positions-page-summary",
+    "positions-row",
+    "positions-search-button",
+    "positions-search-input",
+    "positions-sort",
+    "positions-table",
+    "positions-to",
+    "tenant-switcher",
+    "user-name"
+  ],
+  "Documents": [
+    "app-header",
+    "documents-empty",
+    "documents-search-button",
+    "documents-search-input",
+    "documents-table",
+    "documents-total",
+    "tenant-switcher",
+    "user-name"
+  ],
+  "Comments": [
+    "app-header",
+    "comment-add",
+    "comment-input",
+    "comment-position-id",
+    "comment-status",
+    "comments-empty",
+    "comments-list",
+    "tenant-switcher",
+    "user-name"
+  ]
+}

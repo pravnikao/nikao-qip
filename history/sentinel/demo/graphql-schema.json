@@ -1,0 +1,29 @@
+[
+  {
+    "name": "Query",
+    "kind": "OBJECT",
+    "fields": {
+      "documents": "DocumentConnection!(search: String!, first: Int)"
+    }
+  },
+  {
+    "name": "DocumentConnection",
+    "kind": "OBJECT",
+    "fields": {
+      "totalCount": "Int",
+      "nodes": "[DocumentPackage]"
+    }
+  },
+  {
+    "name": "DocumentPackage",
+    "kind": "OBJECT",
+    "fields": {
+      "id": "String",
+      "fileName": "String",
+      "formCode": "String",
+      "issuerName": "String",
+      "status": "String",
+      "createdAt": "String"
+    }
+  }
+]
