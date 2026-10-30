@@ -50,3 +50,22 @@ test('runs that create data on a shared environment ask first', () => {
   assert.equal(bash('QIP_ENV=test npx playwright test -c playwright.unit.config.ts'), undefined);
   assert.equal(decision(bash('curl -X DELETE https://api.example/positions/1')), 'ask');
 });
+
+const ps = (command, agent_type) => decide({ tool_name: 'PowerShell', tool_input: { command }, agent_type }, ownership, env);
+
+test('PowerShell gets the same rules as Bash', () => {
+  for (const c of ['git commit --allow-empty -m "hook test"', 'git -C .\\nikao-qip commit -m x', 'git -C "C:\\a b\\repo" push -u origin main', 'git.exe add .', 'git -c user.email=x commit -m y']) {
+    assert.equal(decision(ps(c)), 'deny', c);
+  }
+  assert.equal(decision(bash('git -C ./repo push')), 'deny', 'bash with -C');
+  for (const c of ['git status', 'git -C .\\nikao-qip log --oneline -1', 'git diff']) assert.equal(ps(c), undefined, c);
+  assert.equal(decision(ps('Get-Content .env')), 'deny');
+  assert.equal(decision(ps('gc .\\.env.local')), 'deny');
+  assert.equal(ps('Get-Content .env.example'), undefined);
+  assert.equal(decision(ps('Get-ChildItem env:')), 'deny');
+  assert.equal(decision(ps('Write-Output $env:QIP_ADMIN_PASS')), 'deny');
+  assert.equal(decision(ps('Remove-Item .qip-session.lock -Force')), 'deny');
+  assert.equal(decision(ps('$env:QIP_ENV="test"; npx playwright test')), 'ask');
+  assert.equal(ps('$env:QIP_ENV="demo"; npx playwright test'), undefined);
+  assert.equal(decision(ps('Invoke-RestMethod -Uri https://api.example/x -Method Delete')), 'ask');
+});

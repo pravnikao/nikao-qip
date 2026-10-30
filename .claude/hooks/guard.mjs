@@ -22,25 +22,33 @@ export function decide(input, ownership, env = process.env) {
   const agent = input.agent_type;
   const root = env.CLAUDE_PROJECT_DIR ?? input.cwd ?? process.cwd();
 
-  if (tool === 'Bash') {
+  // Shell tools: Bash everywhere, PowerShell on Windows. Both get the same rules.
+  if (tool === 'Bash' || tool === 'PowerShell') {
     const cmd = String(ti.command ?? '');
-    if (/\bgit\s+(commit|push|merge|rebase|tag|cherry-pick|am)\b|\bgit\s+reset\s+--hard\b|\bgit\s+add\b|\bgh\s+pr\s+(create|merge)\b/.test(cmd)) {
+    // git with any global options before the subcommand, e.g. `git -C .\repo commit`.
+    const GIT = String.raw`\bgit(?:\.exe)?(?:\s+(?:-C\s+(?:"[^"]*"|'[^']*'|\S+)|-c\s+\S+|--?[\w-]+(?:=\S+)?))*\s+`;
+    if (new RegExp(`${GIT}(commit|push|merge|rebase|tag|cherry-pick|am|add)\\b|${GIT}reset\\s+--hard\\b`, 'i').test(cmd) || /\bgh(\.exe)?\s+pr\s+(create|merge)\b/i.test(cmd)) {
       return deny('Git changes are the QA lead\'s job. Leave your changes in the working tree and list the files in your report.');
     }
-    if (/(cat|less|more|head|tail|type|grep|sed|awk)\b[^|;&]*\.env(\b|\.)|\.auth\//.test(cmd) || /\b(printenv|env)\s*($|[|;&])/.test(cmd) || /echo\s+[^|;&]*\$\{?QIP_[A-Z_]*(PASS|SECRET|TOKEN|KEY)/.test(cmd)) {
+    const ENV_FILE = String.raw`\.env(?!\.example)(\b|\.)`;
+    const readsEnvFile = new RegExp(String.raw`\b(cat|less|more|head|tail|type|grep|sed|awk|Get-Content|gc|Select-String|sls)\b[^|;&]*` + ENV_FILE, 'i').test(cmd);
+    const readsAuth = /\.auth[\\/]/i.test(cmd);
+    const dumpsEnv = /\b(printenv|env)\s*($|[|;&])/.test(cmd) || /\b(Get-ChildItem|gci|dir|ls)\s+env:/i.test(cmd) || /\[Environment\]::GetEnvironmentVariables?\(/i.test(cmd);
+    const printsSecret = /\$\{?(env:)?QIP_[A-Z_]*(PASS|SECRET|TOKEN|KEY)/i.test(cmd);
+    if (readsEnvFile || readsAuth || dumpsEnv || printsSecret) {
       return deny('Secrets stay unread: no .env, saved sessions or secret variables. Use the framework, which masks secrets to 4 characters.');
     }
-    if (/\brm\b[^|;&]*\.qip-session\.lock/.test(cmd)) {
+    if (/\b(rm|del|erase|ri|rmdir|Remove-Item)\b[^|;&]*\.qip-session\.lock/i.test(cmd)) {
       return deny('Do not delete the session lock by hand. Run `npm run qip -- lock status`; if it names you, `npm run qip -- lock release --as <you>`. If it names someone else, leave it.');
     }
     if (/\bplaywright\s+test\b/.test(cmd)) {
-      const envName = (cmd.match(/QIP_ENV=(\S+)/) ?? [])[1] ?? env.QIP_ENV ?? 'demo';
-      const excludesWrites = /--grep-invert[ =]+['"]?[^'"]*@creates-data/.test(cmd) || /QIP_SCHEDULED=1/.test(cmd);
+      const envName = (cmd.match(/QIP_ENV\s*=\s*["']?([\w-]+)/i) ?? [])[1] ?? env.QIP_ENV ?? 'demo';
+      const excludesWrites = /--grep-invert[ =]+['"]?[^'"]*@creates-data/.test(cmd) || /QIP_SCHEDULED\s*=\s*["']?1/.test(cmd);
       if (envName !== 'demo' && !excludesWrites && !/--project[ =]unit|playwright\.unit\.config/.test(cmd)) {
         return ask(`This run may create data on "${envName}" (tests tagged @creates-data). Approve, or re-run with --grep-invert @creates-data.`);
       }
     }
-    if (/\bcurl\b[^|;&]*(-X|--request)\s*(POST|PUT|PATCH|DELETE)\b/i.test(cmd)) {
+    if (/\bcurl(\.exe)?\b[^|;&]*(-X|--request)\s*(POST|PUT|PATCH|DELETE)\b/i.test(cmd) || /\b(Invoke-WebRequest|Invoke-RestMethod|iwr|irm)\b[^|;&]*-Method\s+['"]?(Post|Put|Patch|Delete)\b/i.test(cmd)) {
       return ask('This sends a write request to an API. Approve only if the brief names this exact write.');
     }
     return undefined;
