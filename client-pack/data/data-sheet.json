@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "holidays": [],
+  "environments": {
+    "demo": {
+      "positions": {
+        "anchor": { "from": "{{today-5bd}}", "to": "{{today}}", "tenant": "alpha" },
+        "tenant": "alpha",
+        "status": "data",
+        "minRows": 50,
+        "notes": "Business matrix: trade dates in the last five business days"
+      },
+      "documents": {
+        "anchor": { "search": "CA" },
+        "tenant": "alpha",
+        "status": "data",
+        "notes": "Search by CA"
+      },
+      "comments": {
+        "anchor": { "tenant": "alpha" },
+        "tenant": "alpha",
+        "status": "data-absent",
+        "notes": "No comments loaded; the comments flow creates its own"
+      },
+      "comments-beta": {
+        "anchor": { "tenant": "beta" },
+        "tenant": "beta",
+        "status": "data-absent",
+        "notes": "Beta has no comments; row checks skip"
+      }
+    }
+  }
+}

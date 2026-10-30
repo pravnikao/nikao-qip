@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "lib": ["ES2022", "DOM"],
+    "strict": true,
+    "noUncheckedIndexedAccess": false,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@core/*": ["core/*"],
+      "@client/*": ["client-pack/*"]
+    },
+    "types": ["node"]
+  },
+  "include": ["core", "client-pack", "demo-app", "bin", "tests", "playwright.config.ts"],
+  "exclude": ["node_modules", "reports", "test-results", ".claude"]
+}

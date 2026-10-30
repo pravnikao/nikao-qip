@@ -1,0 +1,45 @@
+name: Agent triage (optional)
+
+# Runs the Reporting agent headless on a finished run's artifacts and posts a
+# structured summary. It reads and reports only; people decide.
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: Scheduled-run id whose artifacts to triage
+        required: true
+
+jobs:
+  triage:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ github.token }}
+          merge-multiple: true
+      - run: npm install -g @anthropic-ai/claude-code
+      - name: Reporting agent (read-only)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          claude -p "Use the reporting agent and the triage-run skill on the newest reports/QIP-Run-Report-*.xlsx and reports/qip/results-*.json. Group every unlinked failure into raise / test fix / environment / product question with evidence. Do not edit files." \
+            --permission-mode dontAsk \
+            --allowedTools "Read,Grep,Glob,Bash(npm run qip*)" \
+            --output-format json \
+            --json-schema "$(cat templates/report.schema.json)" > triage.json
+          jq '.structured_output' triage.json > triage-report.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: triage-${{ inputs.run_id }}
+          path: triage-report.json

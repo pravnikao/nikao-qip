@@ -1,0 +1,30 @@
+name: PR checks
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  checks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      QIP_LEAK_TERMS: ${{ secrets.QIP_LEAK_TERMS }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Framework unit tests
+        run: npm run test:unit
+      - name: Agent guard (hook) tests
+        run: npm run test:hooks
+      - name: Leak scan (client-identifying terms)
+        if: ${{ env.QIP_LEAK_TERMS != '' }}
+        run: |
+          printf '%s\n' "$QIP_LEAK_TERMS" > .qip-leak-terms
+          npm run qip:leak-scan

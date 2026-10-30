@@ -1,0 +1,60 @@
+name: Scheduled run
+
+on:
+  schedule:
+    - cron: '17 5 * * 1-5' # weekdays 05:17 UTC
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: QIP_ENV to run against
+        default: test
+      projects:
+        description: Playwright projects
+        default: '--project=api --project=ui --project=e2e'
+
+jobs:
+  run:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    concurrency: qip-${{ inputs.environment || 'test' }} # one run per environment
+    env:
+      CI: 'true'
+      QIP_ENV: ${{ inputs.environment || 'test' }}
+      QIP_INSTANCE: ci-${{ github.run_id }}
+      QIP_SCHEDULED: '1' # excludes @creates-data and @post-go-live
+      # Client secrets: add each variable your client.config.ts names.
+      QIP_MAIN_USER: ${{ secrets.QIP_MAIN_USER }}
+      QIP_MAIN_PASS: ${{ secrets.QIP_MAIN_PASS }}
+      QIP_API_TOKEN_URL: ${{ secrets.QIP_API_TOKEN_URL }}
+      QIP_API_CLIENT_ID: ${{ secrets.QIP_API_CLIENT_ID }}
+      QIP_API_CLIENT_SECRET: ${{ secrets.QIP_API_CLIENT_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Framework unit tests (fail fast before touching the environment)
+        run: npm run test:unit
+      - name: Sentinel (stops the run when RED)
+        run: npm run qip:sentinel
+      - name: Suite
+        run: npx playwright test ${{ inputs.projects || '--project=api --project=ui --project=e2e' }}
+        continue-on-error: true
+      - name: Report and history snapshot
+        if: always()
+        run: |
+          npm run qip:report
+          npm run qip -- history add
+          npm run qip:bau-pack
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qip-${{ env.QIP_ENV }}-${{ github.run_id }}
+          path: |
+            reports/
+            history/
+            test-results/
+          retention-days: 30

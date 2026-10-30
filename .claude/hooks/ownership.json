@@ -1,0 +1,11 @@
+{
+  "_comment": "Which paths each agent may write. Agents not listed (and the main session) are not restricted by this file. Patterns are path prefixes relative to the project root.",
+  "builder": ["client-pack/pages/", "client-pack/tests/", "client-pack/support/"],
+  "data-steward": ["client-pack/data/data-sheet.json", "client-pack/data/probes.ts", "docs/data-matrix.md"],
+  "reporting": ["core/report/", "core/reporter/", "core/classify/", "tests/unit/", "client-pack/data/defects.ts", "client-pack/data/bau-verdicts.ts", "client-pack/data/title-renames.ts", "reports/"],
+  "observer": ["docs/captures/"],
+  "prober": ["docs/probes/"],
+  "architect": ["docs/", "templates/", "reports/expectations.md"],
+  "verifier": [],
+  "sentinel": []
+}

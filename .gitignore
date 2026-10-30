@@ -1,0 +1,12 @@
+node_modules/
+test-results/
+playwright-report/
+reports/
+.auth/
+.qip-session.lock
+.env
+.env.*
+!.env.example
+*.log
+.qip-leak-terms
+history/demo/

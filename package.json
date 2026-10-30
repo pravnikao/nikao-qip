@@ -1,0 +1,46 @@
+{
+  "name": "nikao-qip",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Nikao Quality Intelligence Platform: an agent-ready Playwright test framework for web platforms with GraphQL and REST APIs.",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "qip": "bin/qip.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test:unit": "playwright test -c playwright.unit.config.ts",
+    "test:api": "playwright test --project=api",
+    "test:ui": "playwright test --project=ui",
+    "test:e2e": "playwright test --project=e2e",
+    "test:all": "playwright test --project=api --project=ui --project=e2e",
+    "test:hooks": "node --test \".claude/hooks/tests/*.test.mjs\"",
+    "demo:serve": "node --require tsx/cjs demo-app/server.ts",
+    "demo": "tsx bin/qip.ts demo",
+    "qip": "tsx bin/qip.ts",
+    "qip:report": "tsx bin/qip.ts report",
+    "qip:bau-pack": "tsx bin/qip.ts bau-pack",
+    "qip:probes": "tsx bin/qip.ts probes",
+    "qip:sentinel": "tsx bin/qip.ts sentinel",
+    "qip:lock": "tsx bin/qip.ts lock",
+    "qip:drift": "tsx bin/qip.ts drift",
+    "qip:leak-scan": "tsx bin/qip.ts leak-scan",
+    "ci:local": "npm run typecheck && npm run test:unit && npm run test:hooks"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.0",
+    "@types/node": "^22.9.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.6.3"
+  },
+  "dependencies": {
+    "exceljs": "^4.4.0",
+    "zod": "^4.6.7"
+  },
+  "overrides": {
+    "uuid": "^11.1.1"
+  }
+}

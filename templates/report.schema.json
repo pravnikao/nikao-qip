@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Nikao QIP agent report",
+  "type": "object",
+  "required": ["agent", "brief", "status", "summary", "evidence", "filesChanged", "decisionsNeeded"],
+  "additionalProperties": false,
+  "properties": {
+    "agent": { "type": "string", "enum": ["architect", "observer", "prober", "builder", "data-steward", "reporting", "verifier", "sentinel"] },
+    "brief": { "type": "string", "description": "Brief title or path" },
+    "status": { "type": "string", "enum": ["done", "partial", "blocked", "confirmed", "refuted", "inconclusive"] },
+    "summary": { "type": "string", "description": "Two or three sentences, plain English" },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["kind", "ref", "finding"],
+        "properties": {
+          "kind": { "type": "string", "enum": ["capture", "probe", "run", "diff", "test", "screenshot", "log"] },
+          "ref": { "type": "string", "description": "Path, run id or test id" },
+          "finding": { "type": "string" }
+        }
+      }
+    },
+    "filesChanged": { "type": "array", "items": { "type": "object", "required": ["path", "why"], "properties": { "path": { "type": "string" }, "why": { "type": "string" } } } },
+    "counts": { "type": "object", "description": "Before/after run counts", "properties": { "before": { "type": "object" }, "after": { "type": "object" } } },
+    "defects": { "type": "array", "items": { "type": "object", "required": ["ref", "action"], "properties": { "ref": { "type": "string" }, "action": { "type": "string", "enum": ["new", "annotated", "ready-to-close", "reopen?", "unchanged"] }, "note": { "type": "string" } } } },
+    "decisionsNeeded": { "type": "array", "items": { "type": "string" }, "description": "Questions only the QA lead or the business can answer" }
+  }
+}
